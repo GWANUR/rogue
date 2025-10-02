@@ -5,7 +5,6 @@
 //   TILE_SWORD (2) : sword (tile-SW.png)
 //   TILE_POTION(3) : health potion (tile-HP.png)
 
-// Configuration constants
 const TILE_EMPTY = 0;
 const TILE_WALL = 1;
 const TILE_SWORD = 2;
@@ -15,34 +14,27 @@ const MAP_WIDTH = 40;
 const MAP_HEIGHT = 24;
 const TILE_SIZE = 50;
 
-// Sword and potion counts
 const SWORD_COUNT = 1;
 const POTION_COUNT = 2;
 
-// Room generation
 const ROOM_MIN = 3;
 const ROOM_MAX = 8;
 const ROOM_COUNT_MIN = 5;
 const ROOM_COUNT_MAX = 10;
 
-// Corridor generation
-const CORRIDOR_MIN = 3; // per direction
+const CORRIDOR_MIN = 3; 
 const CORRIDOR_MAX = 5;
 
-// Enemy config
 const ENEMY_COUNT = 10;
 const ENEMY_HP = 5;
 const ENEMY_ATTACK = 1;
 
-// Hero config
 const HERO_HP = 10;
 const HERO_ATTACK = 1;
 
-// Runtime counters for HUD
 let potionsCarried = 0;
 let killed = 0;
 
-// Game state
 let map = [];
 let hero = { x: 0, y: 0, hp: HERO_HP, maxHp: HERO_HP, attack: HERO_ATTACK };
 let enemies = [];
@@ -50,7 +42,6 @@ let rooms = [];
 
 class Game {
   init() {
-    // reset runtime counters
     potionsCarried = 0;
     killed = 0;
 
@@ -141,7 +132,6 @@ class Game {
   }
 
   placeHero() {
-    // reset hero stats to defaults on new game
     hero = { x: 0, y: 0, hp: HERO_HP, maxHp: HERO_HP, attack: HERO_ATTACK };
 
     while (true) {
@@ -165,8 +155,6 @@ class Game {
   }
 
   bindInput() {
-    // Keep a reference to the bound handler so we can avoid adding multiple listeners
-    // If a previous listener exists, remove it first (prevents double-processing on restart)
     if (this._boundHandle) {
       window.removeEventListener('keydown', this._boundHandle);
     }
@@ -246,13 +234,11 @@ class Game {
     let nx = hero.x + dx;
     let ny = hero.y + dy;
 
-    // wrap-around logic
     if (nx < 0) nx = MAP_WIDTH - 1;
     if (nx >= MAP_WIDTH) nx = 0;
     if (ny < 0) ny = MAP_HEIGHT - 1;
     if (ny >= MAP_HEIGHT) ny = 0;
 
-    // Block walls and enemies
     if (map[ny][nx] === TILE_WALL) return;
     if (enemies.some(e => e.x === nx && e.y === ny)) return;
 
@@ -288,7 +274,6 @@ class Game {
   }
 
   heroAttack() {
-    // Damage all adjacent enemies; surviving enemies retaliate once (flagged)
     const dirs = [{dx:-1,dy:0},{dx:1,dy:0},{dx:0,dy:-1},{dx:0,dy:1}];
     dirs.forEach(({dx,dy}) => {
       const tx = hero.x+dx, ty = hero.y+dy;
@@ -297,7 +282,6 @@ class Game {
         const en = enemies[idx];
         en.hp -= hero.attack;
         if (en.hp>0) {
-          // enemy retaliates immediately, but mark it so updateEnemies won't double-attack
           hero.hp -= en.attack;
           en._justRetaliated = true;
         } else {
@@ -306,7 +290,6 @@ class Game {
         }
       }
     });
-    // after processing all adjacent enemies check victory
     if (enemies.length === 0 || killed >= ENEMY_COUNT) {
       this.win();
       return;
@@ -392,7 +375,6 @@ class Game {
       const e = enemies[i];
       const dx = Math.abs(e.x - hero.x);
       const dy = Math.abs(e.y - hero.y);
-      // if this enemy just retaliated during heroAttack, skip its attack this enemy-turn
       if (e._justRetaliated) { e._justRetaliated = false; continue; }
 
       if ((dx === 1 && dy === 0) || (dx === 0 && dy === 1)) {
@@ -413,7 +395,6 @@ class Game {
         }
       }
     }
-    // Note: do NOT call adjacentEnemyDamage here — enemy attacks are handled above per-turn
   }
 
   updateHUD() {
